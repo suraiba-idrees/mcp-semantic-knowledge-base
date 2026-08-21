@@ -1,0 +1,17 @@
+const TOKEN_KEY = 'commonplace_access_token'
+
+export function getStoredToken() {
+  return window.localStorage.getItem(TOKEN_KEY)
+}
+
+export function storeToken(token) {
+  window.localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function clearStoredToken() {
+  window.localStorage.removeItem(TOKEN_KEY)
+}
+
+export function hasStoredToken() {
+  return Boolean(getStoredToken())
+}
