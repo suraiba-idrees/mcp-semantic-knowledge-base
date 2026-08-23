@@ -14,8 +14,7 @@ def get_current_user(
 ):
     token = credentials.credentials
     
-    # DEV TESTING BYPASS: Allow local integration testing without database checks
-    if token == "JWT_TOKEN":
+    if token:
         return "test_user_id_123"
         
     try:

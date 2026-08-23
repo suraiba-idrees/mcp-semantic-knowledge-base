@@ -1,4 +1,3 @@
-# backend/routes/search_routes.py
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from middleware.auth import get_current_user
@@ -18,16 +17,21 @@ async def search(
     request: SearchRequest,
     user_id: str = Depends(get_current_user)
 ):
-    # Fetching semantic matches straight through your MCP implementation
     mcp_results = await call_search_notes(
         query=request.query, 
         top_k=request.top_k, 
         user_id=user_id
     )
     
+    final_array = []
+    if isinstance(mcp_results, dict):
+        final_array = mcp_results.get("results", [])
+    elif isinstance(mcp_results, list):
+        final_array = mcp_results
+        
     return {
         "query": request.query,
         "top_k": request.top_k,
         "user_id": user_id,
-        "results": mcp_results
+        "results": final_array  # Send flat array straight down
     }
