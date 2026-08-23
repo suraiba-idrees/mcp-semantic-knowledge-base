@@ -1,184 +1,497 @@
 <div align="center">
 
-# 🧠 MCP Semantic Knowledge Base
+# 🏛️ Commonplace
 
-### A Multi-User MCP Server for Semantic Search Over Personal Document Collections
+### Multi-User Semantic Knowledge Base with MCP, FastAPI, React & Qdrant
 
-![Python](https://img.shields.io/badge/Python-3.14-blue?logo=python&logoColor=white)
-![FastMCP](https://img.shields.io/badge/FastMCP-Server-8A2BE2)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB?logo=react&logoColor=black)
-![Qdrant](https://img.shields.io/badge/Qdrant-Vector%20Database-red)
-![Status](https://img.shields.io/badge/Status-In%20Progress-yellow)
+A multi-user semantic knowledge base that combines document ingestion, vector search, and the **Model Context Protocol (MCP)** to make private document collections accessible through both a web application and MCP-compatible AI clients.
+
+<p>
+  <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-0.1%2B-009688?logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React">
+  <img src="https://img.shields.io/badge/Qdrant-Vector%20Database-DC244C?logo=qdrant&logoColor=white" alt="Qdrant">
+  <img src="https://img.shields.io/badge/MCP-FastMCP-6E56CF" alt="MCP">
+</p>
 
 </div>
 
----
+## 📖 Overview
 
-## Overview
+**Commonplace** is a semantic knowledge base designed for storing, indexing, and retrieving information from private document collections.
 
-**MCP Semantic Knowledge Base** is a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes semantic search over a real, personally-owned document corpus as a set of callable tools. Any MCP-compatible client (Claude Desktop, Claude Code, or a custom client) can connect to the server and query it live.
+Instead of relying on keyword-based search, Commonplace converts document content and user queries into dense vector embeddings and retrieves semantically relevant passages using **Qdrant**.
 
-Unlike keyword search, which misses content that doesn't share exact wording, this server uses vector embeddings to search **by meaning** — and exposes that capability as a reusable, protocol-level tool rather than a one-off chatbot.
+The project exposes the same knowledge layer through two interfaces:
 
-The project expands beyond the server itself into a full multi-user web application, with per-user document isolation, authentication, and a web UI for uploading and searching documents.
+* **React web application** — browse documents and perform semantic searches through a visual dashboard.
+* **MCP server** — expose knowledge-base capabilities as reusable tools for MCP-compatible AI clients.
 
----
+The backend is built with **FastAPI**, while the MCP layer uses **FastMCP** to provide programmatic access to the semantic search capabilities.
 
-## Problem Statement
+## ✨ Features
 
-Static keyword search over personal or team knowledge (notes, papers, docs) misses semantically related content that doesn't share exact keywords. This project builds a tool that lets any MCP client search a real corpus by meaning — and exposes it as a protocol-level tool that any compatible AI client can call directly, rather than through a custom chatbot UI.
-
----
-
-## Project Status
-
-🚧 **In active development — see Known Limitations below for an honest account of what did not make it into this submission.**
-
-| Component | Owner | Status |
-|---|---|---|
-| MCP Server structure (FastMCP) | Suraiba | ✅ Done |
-| `search_notes()` tool | Suraiba | ✅ Done (placeholder data; real Qdrant connection pending) |
-| `get_document()` tool | Suraiba | ✅ Done |
-| `list_sources()` tool | Suraiba | ✅ Done |
-| Error handling / "no confident match" logic | Suraiba | ✅ Done |
-| Document ingestion + chunking | Aniqa | ❌ Not started |
-| Qdrant vector storage (real data) | Aniqa | ❌ Not started |
-| Retrieval precision evaluation | Suraiba | ⏳ Blocked on real Qdrant data |
-| Backend API + authentication | Saboora | 🚧 In progress |
-| Frontend (upload + search UI) | Maryam | ✅ Done and merged |
-| Per-user data isolation in Qdrant | Aniqa | ❌ Not started |
-| Live demo with Claude Desktop | Suraiba | ⏳ Planned |
-
-The MCP server's three tools are fully built and tested via the MCP Inspector against temporary placeholder data. The frontend is a complete, working React application. Backend authentication and Qdrant-backed ingestion were still in progress at submission time — see Known Limitations.
+* 👥 **Multi-user architecture** for separate knowledge-base contexts
+* 📄 **Document ingestion and indexing**
+* 🧠 **Semantic vector search** using sentence-transformer embeddings
+* 🗄️ **Qdrant vector storage** with cosine similarity search
+* 🔌 **MCP tool integration** through FastMCP
+* ⚡ **FastAPI REST API** for frontend and service communication
+* 🔐 **Authentication layer** for protected API routes
+* 🔎 **Top-k semantic retrieval** with relevance scores
+* 📚 **Document/source listing and retrieval**
+* 🖥️ **React 19 frontend** for searching and exploring indexed knowledge
+* 🧩 **Separated service layers** for API, MCP, authentication, and vector operations
 
 ---
 
-## Tech Stack
+## 📸 Frontend Preview
 
-| Layer | Technology |
-|---|---|
-| MCP Server | FastMCP (Python) |
-| Backend API | FastAPI |
-| Vector Database | Qdrant |
-| Frontend | React |
-| Transport | JSON-RPC 2.0 over STDIO (local dev) |
-| Testing | MCP Inspector |
+<p align="center">
+  <img src="docs/frontend.png" alt="Commonplace semantic knowledge base dashboard" width="900">
+</p>
 
 ---
 
-## Project Structure
+## 🏗️ Architecture
 
+Commonplace uses a layered architecture that separates the presentation, API, MCP, and vector-storage responsibilities.
+
+```text
+                         ┌─────────────────────────┐
+                         │       MCP CLIENTS       │
+                         │ Claude / Cursor / etc.  │
+                         └────────────┬────────────┘
+                                      │
+                                  MCP Tools
+                                      │
+                                      ▼
+┌─────────────────┐          ┌──────────────────────┐
+│   React 19 UI   │ ───────► │   FastAPI Backend   │
+│                 │  REST    │                      │
+│ Search / Docs   │          │ Auth / Routes / API │
+└─────────────────┘          └──────────┬───────────┘
+                                        │
+                                        ▼
+                              ┌──────────────────────┐
+                              │    MCP Service       │
+                              │      Bridge          │
+                              │                      │
+                              │ search_notes         │
+                              │ list_sources         │
+                              │ get_document         │
+                              └──────────┬───────────┘
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │ Sentence Transformers│
+                              │  Dense Embeddings    │
+                              └──────────┬───────────┘
+                                         │
+                                         ▼
+                              ┌──────────────────────┐
+                              │       Qdrant         │
+                              │   Vector Database    │
+                              │                      │
+                              │ Cosine Similarity    │
+                              └──────────────────────┘
 ```
+
+### Request Flow
+
+1. A user submits a semantic query through the React interface.
+2. FastAPI validates the request and authentication context.
+3. The API delegates the operation to the MCP service layer.
+4. The query is converted into a dense embedding.
+5. Qdrant performs vector similarity search against indexed document chunks.
+6. Relevant passages and similarity scores are returned.
+7. FastAPI normalizes the response for the frontend.
+8. The React application renders the matching documents and snippets.
+
+The same underlying MCP tools can also be consumed by compatible AI clients.
+
+
+## 🧰 Tech Stack
+
+| Layer               | Technology                                        |
+| ------------------- | ------------------------------------------------- |
+| Frontend            | React 19, Vite                                    |
+| Backend             | Python, FastAPI                                   |
+| MCP                 | FastMCP / Model Context Protocol                  |
+| Vector Database     | Qdrant                                            |
+| Embeddings          | Sentence Transformers                             |
+| Authentication      | JWT-based middleware / development authentication |
+| Document Processing | PyPDF                                             |
+| API Server          | Uvicorn                                           |
+| Configuration       | python-dotenv                                     |
+| Language            | Python + JavaScript                               |
+
+---
+
+## 🔌 MCP Tools
+
+Commonplace exposes three core MCP tools.
+
+### `search_notes`
+
+Performs semantic search over the user's indexed document collection.
+
+**Input**
+
+```json
+{
+  "query": "string",
+  "top_k": 5
+}
+```
+
+**Example response**
+
+```json
+[
+  {
+    "doc_id": "e3e99d64-6baf-4843-b7aa-e9af9894ff00",
+    "title": "self_help_book.pdf",
+    "snippet": "toward silencing it. As soon as you discover...",
+    "score": 0.47774255
+  }
+]
+```
+
+### `list_sources`
+
+Returns the documents available in the current knowledge-base context.
+
+**Returns**
+
+```json
+[
+  {
+    "id": "document-id",
+    "title": "example.pdf"
+  }
+]
+```
+
+### `get_document`
+
+Retrieves the stored content associated with a specific document identifier.
+
+**Input**
+
+```json
+{
+  "doc_id": "document-id"
+}
+```
+
+## 🌐 REST API
+
+The React application communicates with the backend through a small REST API layer.
+
+| Method | Endpoint          | Description             | Authentication |
+| ------ | ----------------- | ----------------------- | -------------- |
+| `POST` | `/auth/signup`    | Create a user account   | Public         |
+| `POST` | `/auth/login`     | Authenticate a user     | Public         |
+| `GET`  | `/auth/me`        | Get the current user    | Bearer token   |
+| `POST` | `/search`         | Perform semantic search | Bearer token   |
+| `GET`  | `/documents`      | List indexed documents  | Bearer token   |
+| `GET`  | `/documents/{id}` | Retrieve a document     | Bearer token   |
+
+Interactive API documentation is available through FastAPI's Swagger UI during local development:
+
+```text
+http://localhost:8000/docs
+```
+
+## 📂 Project Structure
+
+```text
 mcp-semantic-knowledge-base/
 │
 ├── backend/
-│   ├── mcp_server/          # MCP server exposing search_notes, get_document, list_sources
+│   ├── app.py
+│   │
+│   ├── mcp_server/
+│   │   ├── __init__.py
 │   │   └── server.py
 │   │
-│   ├── ingestion/            # Document chunking, embeddings, Qdrant storage
+│   ├── routes/
+│   │   ├── auth_routes.py
+│   │   ├── document_routes.py
+│   │   └── search_routes.py
 │   │
-│   ├── api/                  # FastAPI routes, authentication, per-user isolation
+│   ├── middleware/
+│   │   └── auth.py
 │   │
-│   ├── requirements.txt
-│   └── .env.example
+│   ├── services/
+│   │   └── mcp_service.py
+│   │
+│   └── requirements.txt
 │
-├── frontend/                 # Web UI for upload, search, and login (complete)
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── services/
+│   │   └── App.jsx
+│   │
+│   └── package.json
 │
-├── docs/                     # Architecture diagram, demo screenshots
+├── docs/
+│   └── screenshots/
+│       └── dashboard.png
 │
 └── README.md
 ```
 
 ---
 
-## MCP Tools
+## 🚀 Getting Started
 
-| Tool | Description | Priority |
-|---|---|---|
-| `search_notes(query, top_k)` | Returns ranked, relevant document chunks with source citation | Must |
-| `get_document(doc_id)` | Fetches the full content of a specific source document | Must |
-| `list_sources()` | Enumerates all documents currently indexed | Should |
+### Prerequisites
 
-All three tools currently run against temporary in-memory placeholder data and have been verified working end-to-end via the MCP Inspector. They also handle empty inputs and unknown IDs gracefully, and return a "no confident match" message instead of a forced, low-relevance answer.
+Make sure the following are installed:
+
+* Python 3.12+
+* Node.js 18+
+* npm
+* Qdrant
+
+You can run Qdrant locally or connect the application to a remote Qdrant instance.
+
+### 1. Start Qdrant
+
+For a local Qdrant instance, make sure the service is available at:
+
+```text
+http://localhost:6333
+```
+
+Verify the service:
+
+```bash
+curl http://localhost:6333
+```
 
 ---
 
-## Running the MCP Server Locally
+### 2. Set Up the Backend
 
-1. Navigate to the server directory:
-   ```bash
-   cd backend/mcp_server
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   source venv/Scripts/activate   # Windows (Git Bash)
-   ```
-3. Install dependencies:
-   ```bash
-   pip install fastmcp
-   ```
-4. Run the server with the MCP Inspector for local testing:
-   ```bash
-   fastmcp dev inspector server.py
-   ```
-5. Open the Inspector URL printed in the terminal, connect to the server, and try the tools under the **Tools** tab.
+From the repository root:
 
-*(Once ingestion is complete, this section will be updated with Qdrant setup instructions.)*
+```bash
+python -m venv venv
+```
 
-## Running the Frontend Locally
+Activate the virtual environment.
+
+**Windows:**
+
+```bash
+venv\Scripts\activate
+```
+
+**macOS/Linux:**
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r backend/requirements.txt
+```
+
+Start the FastAPI server:
+
+```bash
+python -m uvicorn app:app --reload --app-dir backend
+```
+
+The API will be available at:
+
+```text
+http://localhost:8000
+```
+
+Swagger documentation:
+
+```text
+http://localhost:8000/docs
+```
+
+---
+
+### 3. Configure the Frontend
+
+Open a second terminal:
 
 ```bash
 cd frontend
 npm install
-copy .env.example .env
+```
+
+Create:
+
+```text
+frontend/.env
+```
+
+Add:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Start the development server:
+
+```bash
 npm run dev
 ```
-Opens at `http://localhost:5173`. Requires the backend API running at the URL set in `.env`.
+
+The frontend will be available at:
+
+```text
+http://localhost:5173
+```
+
+
+## 🔐 Environment Variables
+
+Create the required environment configuration based on your local setup.
+
+Example:
+
+```env
+QDRANT_URL=http://localhost:6333
+
+# Authentication / application configuration
+SECRET_KEY=your-development-secret
+
+# Frontend
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+> Never commit real API keys, JWT secrets, database credentials, or production environment variables to the repository.
+
+For production deployment, these values should be configured through the hosting provider's environment-variable system.
+
+
+## 🔎 Semantic Search
+
+Commonplace uses dense vector embeddings to represent both documents and search queries in the same vector space.
+
+```text
+Document
+   │
+   ▼
+Chunking
+   │
+   ▼
+Sentence Transformer
+   │
+   ▼
+Dense Vector
+   │
+   ▼
+Qdrant
+   │
+   │
+   │ Semantic similarity
+   ▼
+Top-K relevant chunks
+```
+
+The current embedding pipeline produces **384-dimensional vectors** and uses cosine similarity for semantic retrieval.
+
+> Similarity scores represent vector similarity for individual results; they should not be interpreted as retrieval accuracy or precision metrics without a dedicated evaluation dataset.
 
 ---
 
-## Target Corpus
+## 🧪 Testing & Verification
 
-[PLACEHOLDER — replace with a short description of the real document set used, e.g. "a personal collection of self-help and non-fiction books"]
+The current development workflow verifies the system end-to-end through:
 
----
+* FastAPI endpoint testing
+* MCP tool invocation
+* Qdrant connectivity checks
+* Semantic search queries
+* Frontend-to-backend requests
+* Authentication flow validation
+* Document retrieval validation
 
-## Contributors
-
-| Team Member | Responsibility |
-|---|---|
-| Suraiba Idrees | MCP Server + Tools, Integration, README |
-| Aniqa | Document Ingestion + Qdrant |
-| Saboora | Backend API + Authentication |
-| Maryam | Frontend |
-
----
-
-## Known Limitations (at submission time)
-
-In the interest of an honest account of the project's state:
-
-- **Document ingestion and Qdrant storage were not completed** by the assigned deadline, so `search_notes` and `get_document` are demonstrated against temporary placeholder data rather than a real, self-owned corpus. The tool interfaces are final and will not need to change once real ingestion is connected.
-- **Backend authentication was still in progress** at submission time, so the frontend and MCP server have not yet been demonstrated as a fully connected, end-to-end system.
-- **Retrieval precision evaluation** could not be produced without real retrieval results, and is planned as an immediate next step.
-- **A live Claude Desktop demo** was not completed for this submission and is planned next.
-- The **frontend is fully built and merged**, and the **MCP server's three tools are fully built, error-handled, and verified via the MCP Inspector** — these two pieces are ready to connect to the remaining backend work as soon as it lands.
+A dedicated automated test suite and CI pipeline can be added as the project moves toward deployment.
 
 ---
 
-## Roadmap
+## ☁️ Deployment
 
-- [ ] Connect `search_notes` to real Qdrant vector search
-- [ ] Implement per-user document isolation
-- [ ] Backend API layer connecting frontend to MCP tools
-- [ ] User authentication (signup/login)
-- [ ] Retrieval precision evaluation on a hand-labeled query set
-- [ ] Live demo with Claude Desktop
+### Current Status
+
+> 🚧 **Deployment is currently in progress.**
+> The application is fully runnable in a local development environment.
+
+### Planned Production Architecture
+
+```text
+┌──────────────────────┐
+│      Vercel          │
+│   React Frontend     │
+└──────────┬───────────┘
+           │ HTTPS
+           ▼
+┌──────────────────────┐
+│   Backend Hosting    │
+│ FastAPI + Uvicorn    │
+└──────────┬───────────┘
+           │ HTTPS
+           ▼
+┌──────────────────────┐
+│     Qdrant Cloud     │
+│    Vector Storage    │
+└──────────────────────┘
+```
+
+The intended deployment setup is:
+
+* **Frontend:** Vercel
+* **Backend:** Containerized FastAPI deployment
+* **Vector database:** Qdrant Cloud
+* **Secrets:** Hosting-provider environment variables
+* **Transport:** HTTPS
+
+Once deployment is complete, this section should be updated with:
+
+* Live frontend URL
+* Backend API URL
+* API documentation URL
+* Qdrant deployment information
+* Deployment status badge
+* Production architecture diagram
 
 ---
 
-## License
+## 👥 Contributors
 
-Developed as part of the Zeppelin AI & Generative AI Fellowship.
+| Contributor        | Responsibility                            |
+| ------------------ | ----------------------------------------- |
+| **Suraiba Idrees** | MCP protocol layer & pipeline integration |
+| **Aniqa**          | Data ingestion & Qdrant operations        |
+| **Saboora**        | REST backend & authentication             |
+| **Maryam**         | React frontend & UI architecture          |
+
+---
+
+## 🎓 Project
+
+Developed as part of the **Zeppelin AI & Generative AI Fellowship 2026**.
+
+## 📬 Contact / Connect
+For questions, feedback, or collaboration, open an issue or reach out to the project contributors.
+
+## 📄 License
+
+This project is distributed under the **MIT License**.
+
+See [`LICENSE`](LICENSE) for details.
