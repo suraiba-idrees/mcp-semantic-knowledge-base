@@ -1,4 +1,6 @@
 from fastmcp import FastMCP
+from ingestion.retrieval import search_notes as qdrant_search
+from ingestion.document_service import get_document as qdrant_get_document, list_sources as qdrant_list_sources
 
 mcp = FastMCP("Personal Knowledge Base")
 
