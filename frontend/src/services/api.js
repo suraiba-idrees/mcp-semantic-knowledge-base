@@ -1,7 +1,7 @@
 import { clearStoredToken, getStoredToken } from './auth.js'
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
-export const API_BASE_URL = (configuredBaseUrl || 'http://localhost:8000').replace(/\/$/, '')
+export const API_BASE_URL = (configuredBaseUrl || 'https://commonplace-mcp-semantic-knowledge-base.fastapicloud.dev/').replace(/\/$/, '')
 
 export class ApiError extends Error {
   constructor(message, status = 0, data = null) {
@@ -89,7 +89,14 @@ export function normalizeDocuments(payload) {
   return Array.isArray(documents) ? documents : []
 }
 
-export function normalizeSearchResults(payload) {
-  const results = Array.isArray(payload) ? payload : payload?.results
-  return Array.isArray(results) ? results : []
+export function normalizeDocuments(payload) {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  const potentialKeys = ['documents', 'data', 'items', 'results'];
+  for (const key of potentialKeys) {
+    if (payload[key] && Array.isArray(payload[key])) {
+      return payload[key];
+    }
+  }
+  return [];
 }
