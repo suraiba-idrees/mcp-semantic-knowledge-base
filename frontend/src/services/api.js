@@ -1,7 +1,7 @@
 import { clearStoredToken, getStoredToken } from './auth.js'
 
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim()
-export const API_BASE_URL = (configuredBaseUrl || 'https://commonplace-mcp-semantic-knowledge-base.fastapicloud.dev/').replace(/\/$/, '')
+export const API_BASE_URL = (configuredBaseUrl || 'https://commonplace-mcp-semantic-knowledge-base.fastapicloud.dev/').trim()
 
 export class ApiError extends Error {
   constructor(message, status = 0, data = null) {
