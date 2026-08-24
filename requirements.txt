@@ -1,5 +1,5 @@
 --extra-index-url https://pytorch.org
-torch==2.13.0+cpu
+torch==2.4.0+cpu
 transformers==5.15.1
 sentence-transformers==5.6.1
 fastapi==0.139.2
